@@ -17,7 +17,8 @@ pip install -r requirements.txt
 ```
 
 ## News
-- **Sep 2025**: 🏆 FlexSED was **Spotlighted at WASPAA 2025** 🎉  
+- Oct 2025: 📦 Released code and pretrained checkpoint  
+- Sep 2025: 🎉 FlexSED Spotlighted at WASPAA 2025
 
 
 ## Usage
