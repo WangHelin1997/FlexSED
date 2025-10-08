@@ -4,6 +4,11 @@
 [![Hugging Face Models](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-blue)](https://huggingface.co/Higobeatz/FlexSED/tree/main)
 
 
+## News
+- Oct 2025: 📦 Released code and pretrained checkpoint  
+- Sep 2025: 🎉 FlexSED Spotlighted at WASPAA 2025
+
+
 ## Installation
 
 Clone the repository:
@@ -15,11 +20,6 @@ Install the dependencies:
 cd FlexSED
 pip install -r requirements.txt
 ```
-
-## News
-- Oct 2025: 📦 Released code and pretrained checkpoint  
-- Sep 2025: 🎉 FlexSED Spotlighted at WASPAA 2025
-
 
 ## Usage
 ```python
