@@ -26,11 +26,8 @@ class FlexSED:
 
         # Ensure checkpoint exists
         if not os.path.exists(ckpt_path):
-            url = "https://huggingface.co/Higobeatz/FlexSED/resolve/main/ckpts/flexsed_as.pt"
-            print(f"[FlexSED] Downloading checkpoint from {url} ...")
-            state_dict = torch.hub.load_state_dict_from_url(url, map_location="cpu")
-            # os.makedirs(os.path.dirname(ckpt_path), exist_ok=True)
-            # torch.save(state_dict, ckpt_path)  # cache locally
+            print(f"[FlexSED] Downloading checkpoint from {ckpt_url} ...")
+            state_dict = torch.hub.load_state_dict_from_url(ckpt_url, map_location="cpu")
         else:
             state_dict = torch.load(ckpt_path, map_location="cpu")
 
@@ -45,32 +42,6 @@ class FlexSED:
         self.clap = ClapTextModelWithProjection.from_pretrained("laion/clap-htsat-unfused")
         self.clap.eval()
         self.tokenizer = AutoTokenizer.from_pretrained("laion/clap-htsat-unfused")
-
-    @staticmethod
-    def plot_and_save_event(pred_e, event_name, sr=25, out_dir="./plots"):
-        """
-        Save heatmap plot for a single event prediction.
-        """
-        os.makedirs(out_dir, exist_ok=True)
-        pred_np = pred_e.squeeze(0).numpy()
-        T = pred_np.shape[0]
-
-        plt.figure(figsize=(12, 4))
-        plt.imshow(
-            pred_np[np.newaxis, :],
-            aspect="auto",
-            cmap="Blues",
-            extent=[0, T/sr, 0, 1]
-        )
-        plt.colorbar(label="Value")
-        plt.xlabel("Time (s)")
-        # plt.ylabel("Heat")
-        plt.title(f"Target Event: {event_name}")
-
-        save_path = os.path.join(out_dir, f"{event_name}.png")
-        plt.savefig(save_path, dpi=200, bbox_inches="tight")
-        plt.close()
-        return save_path
 
     def run_inference(self, audio_path, events, norm_audio=True):
         """
@@ -98,32 +69,48 @@ class FlexSED:
             preds = self.model(mel, query)
             preds = torch.sigmoid(preds).cpu()
 
-        return preds
+        return preds  # shape: [num_events, 1, T]
 
-    def to_plot(self, preds, events, out_dir="./plots"):
-        results = {}
-        for i, event in enumerate(events):
-            pred_e = preds[i]
-            plot_path = self.plot_and_save_event(pred_e, event, out_dir=out_dir)
-            results[event] = {
-                "prediction": pred_e.squeeze(0).tolist(),
-                "plot_path": plot_path
-            }
-        return results
-
+    # ---------- Multi-event plotting ----------
     @staticmethod
-    def make_event_video(pred_e, event_name, sr=25, out_dir="./videos", 
-                         audio_path=None, fps=25, highlight=True):
-        """
-        Generate a video of the event prediction heatmap.
-        Left-to-right highlight with optional audio.
-        """
+    def plot_and_save_multi(preds, events, sr=25, out_dir="./plots", fname="all_events"):
+        os.makedirs(out_dir, exist_ok=True)
+        preds_np = preds.squeeze(1).numpy()  # [num_events, T]
+        T = preds_np.shape[1]
+
+        plt.figure(figsize=(12, len(events) * 0.6 + 2))
+        plt.imshow(
+            preds_np,
+            aspect="auto",
+            cmap="Blues",
+            extent=[0, T/sr, 0, len(events)],
+            vmin=0, vmax=1, origin="lower"
+
+        )
+        plt.colorbar(label="Probability")
+        plt.yticks(np.arange(len(events)) + 0.5, events)
+        plt.xlabel("Time (s)")
+        plt.ylabel("Events")
+        plt.title("Event Predictions")
+
+        save_path = os.path.join(out_dir, f"{fname}.png")
+        plt.savefig(save_path, dpi=200, bbox_inches="tight")
+        plt.close()
+        return save_path
+
+    def to_multi_plot(self, preds, events, out_dir="./plots", fname="all_events"):
+        return self.plot_and_save_multi(preds, events, out_dir=out_dir, fname=fname)
+
+    # ---------- Multi-event video ----------
+    @staticmethod
+    def make_multi_event_video(preds, events, sr=25, out_dir="./videos",
+                               audio_path=None, fps=25, highlight=True, fname="all_events"):
         from moviepy.editor import ImageSequenceClip, AudioFileClip
         from tqdm import tqdm
 
         os.makedirs(out_dir, exist_ok=True)
-        pred_np = pred_e.squeeze(0).numpy()
-        T = pred_np.shape[0]
+        preds_np = preds.squeeze(1).numpy()  # [num_events, T]
+        T = preds_np.shape[1]
         duration = T / sr
 
         frames = []
@@ -131,83 +118,68 @@ class FlexSED:
 
         for i in tqdm(range(n_frames)):
             t = int(i * T / n_frames)
-
-            plt.figure(figsize=(12, 4))
+            plt.figure(figsize=(12, len(events) * 0.6 + 2))
 
             if highlight:
-                # full heatmap, but fade future
-                mask = np.zeros_like(pred_np)
-                mask[:t+1] = pred_np[:t+1]
+                mask = np.zeros_like(preds_np)
+                mask[:, :t+1] = preds_np[:, :t+1]
                 plt.imshow(
-                    mask[np.newaxis, :],
+                    mask,
                     aspect="auto",
                     cmap="Blues",
-                    extent=[0, T/sr, 0, 1],
-                    vmin=0, vmax=1
+                    extent=[0, T/sr, 0, len(events)],
+                    vmin=0, vmax=1, origin="lower"
                 )
             else:
-                # truncate version (hard cut)
                 plt.imshow(
-                    pred_np[np.newaxis, :t+1],
+                    preds_np[:, :t+1],
                     aspect="auto",
                     cmap="Blues",
-                    extent=[0, (t+1)/sr, 0, 1],
-                    vmin=0, vmax=1
+                    extent=[0, (t+1)/sr, 0, len(events)],
+                    vmin=0, vmax=1, origin="lower"
                 )
 
-            plt.colorbar(label="Value")
+            plt.colorbar(label="Probability")
+            plt.yticks(np.arange(len(events)) + 0.5, events)
             plt.xlabel("Time (s)")
-            # plt.ylabel("Heat")
-            plt.title(f"Target Event: {event_name}")
+            plt.ylabel("Events")
+            plt.title("Event Predictions")
 
             frame_path = f"/tmp/frame_{i:04d}.png"
             plt.savefig(frame_path, dpi=150, bbox_inches="tight")
             plt.close()
             frames.append(frame_path)
 
-        # make video from frames
         clip = ImageSequenceClip(frames, fps=fps)
-
         if audio_path is not None:
             audio = AudioFileClip(audio_path).subclip(0, duration)
             clip = clip.set_audio(audio)
 
-        save_path = os.path.join(out_dir, f"{event_name}.mov")
+        save_path = os.path.join(out_dir, f"{fname}.mp4")
         clip.write_videofile(
             save_path,
             fps=fps,
-            codec="libx264",   # 仍然用 x264
+            codec="mpeg4",
             audio_codec="aac"
         )
-        # cleanup temp images
+
         for f in frames:
             os.remove(f)
 
         return save_path
 
-    def to_video(self, preds, events, audio_path, out_dir="./videos"):
-        # Make video with highlight + audio
-        results = {}
-        for i, event in enumerate(events):
-            video_path = self.make_event_video(
-                preds[i], event, sr=25,
-                audio_path=audio_path,  # optional
-                out_dir=out_dir
-            )
-            # print("Video saved to:", video_path)
-            results[event] = {
-                "prediction": preds[i].squeeze(0).tolist(),
-                "plot_path": video_path
-            }
-        return results
+    def to_multi_video(self, preds, events, audio_path, out_dir="./videos", fname="all_events"):
+        return self.make_multi_event_video(
+            preds, events, audio_path=audio_path, out_dir=out_dir, fname=fname
+        )
 
 
 if __name__ == "__main__":
     flexsed = FlexSED(device='cuda')
-    events = ["Dog"]
-    preds = flexsed.run_inference("example.wav", events)
-    flexsed.to_plot(preds, events)
-    flexsed.to_video(preds, events, "example.wav")
 
+    events = ["Door", "Laughter", "Dog"]
+    preds = flexsed.run_inference("example2.wav", events)
 
-
+    # Combined plot & video
+    flexsed.to_multi_plot(preds, events, fname="example2")
+    # flexsed.to_multi_video(preds, events, audio_path="example2.wav", fname="example2")

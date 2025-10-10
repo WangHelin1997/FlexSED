@@ -35,10 +35,10 @@ events = ["Dog"]
 preds = flexsed.run_inference("example.wav", events)
 
 # visualize prediciton
-flexsed.visualize_audio(preds, events)
+flexsed.to_multi_plot(preds, events, fname="example2")
 
 # (Optional) visualize prediciton by video
-# flexsed.to_video(preds, events, "example.wav")
+# flexsed.to_multi_video(preds, events, audio_path="example2.wav", fname="example2")
 ```
 
 ## Training
