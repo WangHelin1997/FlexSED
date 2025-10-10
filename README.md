@@ -36,6 +36,9 @@ preds = flexsed.run_inference("example.wav", events)
 
 # visualize prediciton
 flexsed.visualize_audio(preds, events)
+
+# (Optional) visualize prediciton by video
+# flexsed.to_video(preds, events, "example.wav")
 ```
 
 ## Training
