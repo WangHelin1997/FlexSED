@@ -33,7 +33,7 @@ import soundfile as sf
 flexsed = FlexSED(device='cuda')
 
 # run inference
-events = ["Door", "Laughter", "Dog"]
+events = ["Door", "Male Speech", "Laughter", "Dog"]
 preds = flexsed.run_inference("example.wav", events)
 
 # visualize prediciton

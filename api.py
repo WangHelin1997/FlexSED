@@ -177,7 +177,7 @@ class FlexSED:
 if __name__ == "__main__":
     flexsed = FlexSED(device='cuda')
 
-    events = ["Door", "Laughter", "Dog"]
+    events = ["Door", "Male Speech", "Laughter", "Dog"]
     preds = flexsed.run_inference("example.wav", events)
 
     # Combined plot & video
