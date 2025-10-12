@@ -178,8 +178,8 @@ if __name__ == "__main__":
     flexsed = FlexSED(device='cuda')
 
     events = ["Door", "Laughter", "Dog"]
-    preds = flexsed.run_inference("example2.wav", events)
+    preds = flexsed.run_inference("example.wav", events)
 
     # Combined plot & video
-    flexsed.to_multi_plot(preds, events, fname="example2")
-    # flexsed.to_multi_video(preds, events, audio_path="example2.wav", fname="example2")
+    flexsed.to_multi_plot(preds, events, fname="example")
+    # flexsed.to_multi_video(preds, events, audio_path="example.wav", fname="example")

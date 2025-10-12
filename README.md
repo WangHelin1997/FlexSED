@@ -31,14 +31,14 @@ import soundfile as sf
 flexsed = FlexSED(device='cuda')
 
 # run inference
-events = ["Dog"]
+events = ["Door", "Laughter", "Dog"]
 preds = flexsed.run_inference("example.wav", events)
 
 # visualize prediciton
-flexsed.to_multi_plot(preds, events, fname="example2")
+flexsed.to_multi_plot(preds, events, fname="example")
 
 # (Optional) visualize prediciton by video
-# flexsed.to_multi_video(preds, events, audio_path="example2.wav", fname="example2")
+# flexsed.to_multi_video(preds, events, audio_path="example.wav", fname="example")
 ```
 
 ## Training
