@@ -58,7 +58,7 @@ class FlexSED:
         clap_embeds = []
         with torch.no_grad():
             for event in events:
-                text = f"The sound of {event.replace('_',' ')}"
+                text = f"The sound of {event.replace('_', ' ').capitalize()}"
                 inputs = self.tokenizer([text], padding=True, return_tensors="pt")
                 outputs = self.clap(**inputs)
                 text_embeds = outputs.text_embeds.unsqueeze(1)
