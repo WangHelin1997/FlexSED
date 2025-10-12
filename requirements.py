@@ -1,0 +1,9 @@
+gradio
+torch
+torchaudio
+soundfile
+matplotlib
+numpy
+librosa
+transformers
+einops
