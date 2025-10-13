@@ -15,7 +15,7 @@
 
 Clone the repository:
 ```
-git clone git@github.com:JHU-LCAP/FlexSED.git
+git clone https://github.com/JHU-LCAP/FlexSED.git 
 ```
 Install the dependencies:
 ```
