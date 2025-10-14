@@ -4,7 +4,7 @@
 [![Hugging Face Models](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-blue)](https://huggingface.co/Higobeatz/FlexSED/tree/main)
 [![Hugging Face Space](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Space-yellow)](https://huggingface.co/spaces/OpenSound/FlexSED)
 
-
+FlexSED is an easy-to-use, open-vocabulary sound event detection (SED) system. It can be used for data annotation, labeling, and developing evaluation metrics for audio generation.
 
 ## News
 - Oct 2025: 📦 Released code and pretrained checkpoint  
